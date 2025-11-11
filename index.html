@@ -190,10 +190,18 @@ function googleLogin() {
     }).catch(err => { console.error(err); alert("Google login failed."); });
 }
 
-// Leaflet Map
+// Leaflet Map - fixed map, no drag/zoom
 const map = L.map('map', {
     minZoom: 2,
-    maxZoom: 15
+    maxZoom: 15,
+    zoomControl: false,
+    dragging: false,
+    scrollWheelZoom: false,
+    doubleClickZoom: false,
+    boxZoom: false,
+    keyboard: false,
+    tap: false,
+    touchZoom: false
 }).setView([10, 105], 5);
 
 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
@@ -249,4 +257,3 @@ document.getElementById('flightForm').addEventListener('submit', async e=>{
 
 </body>
 </html>
-
