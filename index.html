@@ -8,6 +8,7 @@
 <!-- Leaflet CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
+<!-- Custom CSS -->
 <style>
 :root {
     --accent: #2ca1ff;
@@ -17,13 +18,8 @@
     --text-dim: #888;
 }
 
-body, html {
-    margin: 0;
-    padding: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--bg-dark);
-    color: var(--text-light);
-}
+/* Reset */
+body, html { margin:0; padding:0; font-family: 'Segoe UI', sans-serif; background: var(--bg-dark); color: var(--text-light); }
 
 /* Sidebar */
 #sidebar {
@@ -35,16 +31,15 @@ body, html {
     border-right: 1px solid #222;
     box-shadow: 3px 0 10px rgba(0,0,0,0.4);
     position: fixed;
+    z-index: 1000;
 }
-
 #sidebar h1 {
     font-size: 22px;
-    font-weight: 700;
+    font-weight: 600;
     color: var(--accent);
     text-align: center;
     margin: 24px 0;
 }
-
 #sidebar button {
     padding: 14px 24px;
     background: none;
@@ -55,92 +50,37 @@ body, html {
     cursor: pointer;
     transition: all 0.2s;
 }
-
-#sidebar button:hover {
-    background-color: #1f2227;
-    color: var(--accent);
-}
-
-#userInfo {
-    margin-top: auto;
-    padding: 20px;
-    font-size: 14px;
-    border-top: 1px solid #222;
-    color: var(--text-dim);
-}
+#sidebar button:hover { background-color: #1f2227; color: var(--accent); }
+#userInfo { margin-top: auto; padding: 20px; font-size: 14px; border-top: 1px solid #222; color: var(--text-dim); }
 
 /* Map */
-#map {
-    position: absolute;
-    left: 270px;
-    top: 0;
-    right: 0;
-    bottom: 0;
-}
+#map { position:absolute; left:270px; top:0; right:0; bottom:0; z-index:0; }
 
 /* Form */
 #formContainer {
     display: none;
     position: absolute;
-    top: 0;
-    left: 270px;
+    top:0; left:270px;
     width: calc(100% - 270px);
     height: 100vh;
     background: #1b1d22;
     padding: 40px;
     color: var(--text-light);
     overflow-y: auto;
+    z-index: 1000;
 }
-
-#flightForm {
-    max-width: 500px;
-    margin: 0 auto;
-}
-
-#flightForm h2 {
-    color: var(--accent);
-    font-weight: 600;
-    margin-bottom: 20px;
-}
-
-#flightForm label {
-    display: block;
-    margin-top: 12px;
-    font-size: 14px;
-    color: var(--text-dim);
-}
-
-#flightForm input {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #333;
-    border-radius: 4px;
-    background: #121417;
-    color: var(--text-light);
-    margin-top: 4px;
-    font-size: 14px;
-}
-
-#flightForm button {
-    background: var(--accent);
-    color: #fff;
-    padding: 12px;
-    border: none;
-    border-radius: 4px;
-    width: 100%;
-    margin-top: 16px;
-    font-size: 15px;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-#flightForm button:hover {
-    background: #1082e0;
-}
+#flightForm { max-width: 500px; margin: 0 auto; }
+#flightForm h2 { color: var(--accent); font-weight: 600; margin-bottom: 20px; }
+#flightForm label { display: block; margin-top: 12px; font-size: 14px; color: var(--text-dim); }
+#flightForm input { width: 100%; padding: 10px; border: 1px solid #333; border-radius: 4px; background: #121417; color: var(--text-light); margin-top: 4px; font-size: 14px; }
+#flightForm button { background: var(--accent); color: #fff; padding: 12px; border: none; border-radius: 4px; width: 100%; margin-top: 16px; font-size: 15px; cursor: pointer; transition: background 0.2s; }
+#flightForm button:hover { background: #1082e0; }
 </style>
 </head>
+
 <body>
 
+<!-- Sidebar -->
 <div id="sidebar">
     <h1>AeroPulse</h1>
     <button onclick="showSection('home')">Home</button>
@@ -150,8 +90,10 @@ body, html {
     <div id="userInfo">Not logged in</div>
 </div>
 
+<!-- Map -->
 <div id="map"></div>
 
+<!-- New Flight Form -->
 <div id="formContainer">
     <form id="flightForm">
         <h2>New Flight</h2>
@@ -171,65 +113,64 @@ body, html {
     </form>
 </div>
 
-<!-- Leaflet -->
+<!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<!-- Firebase (modular) -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 
-// Firebase Config
+<script>
+// ===== Firebase Setup =====
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "SENDER_ID",
-    appId: "APP_ID"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "SENDER_ID",
+  appId: "APP_ID"
 };
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
+firebase.initializeApp(firebaseConfig);
 
-// Google Login
-window.googleLogin = function() {
-    const provider = new GoogleAuthProvider();
-    signInWithPopup(auth, provider)
-        .then(result => {
-            const user = result.user;
-            document.getElementById('userInfo').innerHTML = `
-                <div style="display:flex;align-items:center;gap:10px;">
-                    <img src="${user.photoURL}" width="36" style="border-radius:50%;">
-                    <span>${user.displayName}</span>
-                </div>`;
-        })
-        .catch(err => {
-            console.error(err);
-            alert("Google login failed: " + err.message);
-        });
-};
+// ===== Google Login =====
+function googleLogin() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    firebase.auth().signInWithPopup(provider)
+    .then(result => {
+        const user = result.user;
+        document.getElementById('userInfo').innerHTML = `
+            <div style="display:flex;align-items:center;gap:10px;">
+                <img src="${user.photoURL}" width="36" style="border-radius:50%;">
+                <span>${user.displayName}</span>
+            </div>`;
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Google login failed.");
+    });
+}
 
-// Leaflet Map
+// ===== Leaflet Map (Dark Tiles) =====
 const map = L.map('map').setView([10, 105], 3);
-
-// Dark Map Tiles
 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; OpenStreetMap, CARTO',
     subdomains: 'abcd',
     maxZoom: 19
 }).addTo(map);
 
+// ===== Flight Route Layer =====
 let flightLayer = null;
 
-// Sidebar Navigation
-window.showSection = function(section) {
+// ===== Sidebar Navigation =====
+function showSection(section) {
     const formContainer = document.getElementById('formContainer');
     formContainer.style.display = section === 'newFlight' ? 'block' : 'none';
-};
+}
 
-// Handle New Flight
+// ===== Add New Flight =====
 document.getElementById('flightForm').addEventListener('submit', async e => {
     e.preventDefault();
+
     const dep = document.getElementById('departure').value;
     const arr = document.getElementById('arrival').value;
     const flightNum = document.getElementById('flightNumber').value;
@@ -238,16 +179,31 @@ document.getElementById('flightForm').addEventListener('submit', async e => {
     if(file) {
         const content = await file.text();
         console.log('Flight JS uploaded:', content);
+        // eval(content); // nếu muốn chạy JS
     }
 
-    // Demo: Route Sydney -> Singapore
+    // Demo flight: Sydney -> Singapore
     const depCoord = [-33.9, 151.2];
     const arrCoord = [1.36, 103.99];
 
     if(flightLayer) map.removeLayer(flightLayer);
-    flightLayer = L.polyline([depCoord, arrCoord], { color: '#2ca1ff', weight: 3 }).addTo(map);
-    map.fitBounds(flightLayer.getBounds());
 
+    // Polyline neon blue
+    flightLayer = L.polyline([depCoord, arrCoord], {
+        color:'#2ca1ff',
+        weight:4,
+        opacity:0.9,
+        dashArray: '10,5'
+    }).addTo(map);
+
+    // Fake 3D effect: add shadow line slightly offset
+    L.polyline([depCoord, arrCoord], {
+        color:'#000',
+        weight:6,
+        opacity:0.2
+    }).addTo(map);
+
+    map.fitBounds(flightLayer.getBounds());
     alert('Flight added: ' + flightNum);
 });
 </script>
