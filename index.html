@@ -12,26 +12,31 @@
 :root {
     --accent: #2ca1ff;
     --bg-dark: #0e0f12;
-    --bg-sidebar: #16181c;
+    --bg-sidebar: rgba(22,24,28,0.75);
     --text-light: #ddd;
-    --text-dim: #888;
+    --text-dim: #aaa;
 }
 
 /* Reset */
 body, html { margin:0; padding:0; font-family: 'Segoe UI', sans-serif; background: var(--bg-dark); color: var(--text-light); }
 
-/* Sidebar */
+/* Sidebar Glass */
 #sidebar {
     width: 270px;
     height: 100vh;
     background: var(--bg-sidebar);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-right: 1px solid rgba(255,255,255,0.1);
     display: flex;
     flex-direction: column;
-    border-right: 1px solid #222;
-    box-shadow: 3px 0 10px rgba(0,0,0,0.4);
+    box-shadow: 3px 0 20px rgba(0,0,0,0.6);
     position: fixed;
     z-index: 1000;
+    transition: all 0.3s ease;
 }
+#sidebar:hover { box-shadow: 6px 0 30px rgba(0,0,0,0.7); }
+
 #sidebar h1 {
     font-size: 22px;
     font-weight: 600;
@@ -39,42 +44,92 @@ body, html { margin:0; padding:0; font-family: 'Segoe UI', sans-serif; backgroun
     text-align: center;
     margin: 24px 0;
 }
+
 #sidebar button {
     padding: 14px 24px;
-    background: none;
+    background: rgba(255,255,255,0.05);
     border: none;
     color: var(--text-light);
     text-align: left;
     font-size: 15px;
     cursor: pointer;
-    transition: all 0.2s;
+    border-radius: 8px;
+    margin: 4px 12px;
+    transition: all 0.2s ease;
 }
-#sidebar button:hover { background-color: #1f2227; color: var(--accent); }
-#userInfo { margin-top: auto; padding: 20px; font-size: 14px; border-top: 1px solid #222; color: var(--text-dim); }
+#sidebar button:hover {
+    background: rgba(44,161,255,0.2);
+    color: var(--accent);
+    transform: translateX(4px);
+}
+
+#userInfo {
+    margin-top: auto;
+    padding: 20px;
+    font-size: 14px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    color: var(--text-dim);
+}
 
 /* Map */
 #map { position:absolute; left:270px; top:0; right:0; bottom:0; z-index:0; }
 
-/* Form */
+/* Flight Plan Form Glass */
 #formContainer {
     display: none;
     position: absolute;
     top:0; left:270px;
     width: calc(100% - 270px);
     height: 100vh;
-    background: #1b1d22;
+    background: rgba(27,29,34,0.75);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     padding: 40px;
     color: var(--text-light);
     overflow-y: auto;
     z-index: 1000;
+    animation: fadeIn 0.4s ease;
+    border-left: 1px solid rgba(255,255,255,0.1);
 }
-#flightForm { max-width: 500px; margin: 0 auto; }
-#flightForm h2 { color: var(--accent); font-weight: 600; margin-bottom: 20px; }
-#flightForm label { display: block; margin-top: 12px; font-size: 14px; color: var(--text-dim); }
-#flightForm input { width: 100%; padding: 10px; border: 1px solid #333; border-radius: 4px; background: #121417; color: var(--text-light); margin-top: 4px; font-size: 14px; }
-#flightForm button { background: var(--accent); color: #fff; padding: 12px; border: none; border-radius: 4px; width: 100%; margin-top: 16px; font-size: 15px; cursor: pointer; transition: background 0.2s; }
-#flightForm button:hover { background: #1082e0; }
 
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+#flightForm { max-width: 500px; margin: 0 auto; }
+#flightForm h2 { color: var(--accent); font-weight: 600; margin-bottom: 20px; text-align: center; }
+#flightForm label { display: block; margin-top: 12px; font-size: 14px; color: var(--text-dim); }
+#flightForm input {
+    width: 100%; padding: 10px;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 6px;
+    background: rgba(18,20,23,0.5);
+    color: var(--text-light);
+    margin-top: 4px; font-size: 14px;
+    transition: all 0.2s ease;
+}
+#flightForm input:hover, #flightForm input:focus {
+    background: rgba(18,20,23,0.8);
+    border-color: var(--accent);
+}
+
+#flightForm button {
+    background: var(--accent);
+    color: #fff;
+    padding: 12px;
+    border: none;
+    border-radius: 6px;
+    width: 100%;
+    margin-top: 16px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+#flightForm button:hover {
+    background: #1082e0;
+    transform: translateY(-2px);
+}
 </style>
 </head>
 <body>
@@ -166,10 +221,8 @@ document.getElementById('flightForm').addEventListener('submit', async e=>{
     if(!flightPlan.route || !Array.isArray(flightPlan.route) || flightPlan.route.length<2)
         return alert("Flight plan must contain at least 2 coordinates");
 
-    // Remove old flight
     if(flightLayer) map.removeLayer(flightLayer);
 
-    // Draw polyline dashed neon style
     flightLayer = L.polyline(flightPlan.route, {
         color: '#2ca1ff',
         weight: 4,
@@ -177,7 +230,6 @@ document.getElementById('flightForm').addEventListener('submit', async e=>{
         dashArray: '8,6'
     }).addTo(map);
 
-    // Add tooltip popup on click
     flightLayer.bindPopup(`
         <b>Flight:</b> ${flightPlan.flightNumber || 'N/A'}<br>
         <b>Aircraft:</b> ${flightPlan.aircraft || 'N/A'}<br>
@@ -188,5 +240,6 @@ document.getElementById('flightForm').addEventListener('submit', async e=>{
     alert(`Flight plan loaded: ${flightPlan.flightNumber || 'Unknown'}`);
 });
 </script>
+
 </body>
 </html>
