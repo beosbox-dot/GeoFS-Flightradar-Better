@@ -190,25 +190,39 @@ function googleLogin() {
     }).catch(err => { console.error(err); alert("Google login failed."); });
 }
 
-// Leaflet Map - fixed map, no drag/zoom
+// Leaflet Map
 const map = L.map('map', {
-    minZoom: 2,
+    minZoom: 3,
     maxZoom: 15,
-    zoomControl: false,
-    dragging: false,
-    scrollWheelZoom: false,
-    doubleClickZoom: false,
-    boxZoom: false,
-    keyboard: false,
-    tap: false,
-    touchZoom: false
+    zoomControl: true
 }).setView([10, 105], 5);
 
+// Tile layer
 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; OpenStreetMap, CARTO',
     subdomains: 'abcd',
     maxZoom: 19
 }).addTo(map);
+
+// Giới hạn di chuyển khi zoom ra quá xa
+function updateBounds() {
+    const zoom = map.getZoom();
+    if(zoom <= map.getMinZoom()) {
+        // tính bounds nhỏ để không kéo quá xa
+        const padding = 5; // adjust if needed
+        const center = map.getCenter();
+        const southWest = L.latLng(center.lat - padding, center.lng - padding);
+        const northEast = L.latLng(center.lat + padding, center.lng + padding);
+        const bounds = L.latLngBounds(southWest, northEast);
+        map.setMaxBounds(bounds);
+    } else {
+        map.setMaxBounds(null); // zoom vào, bỏ giới hạn
+    }
+}
+
+// Cập nhật bounds khi zoom hoặc drag
+map.on('zoomend', updateBounds);
+map.on('moveend', updateBounds);
 
 // Flight route layer
 let flightLayer = null;
@@ -235,6 +249,7 @@ document.getElementById('flightForm').addEventListener('submit', async e=>{
 
     if(flightLayer) map.removeLayer(flightLayer);
 
+    // Neon flight path
     flightLayer = L.polyline(flightPlan.route, {
         color: '#2ca1ff',
         weight: 4,
@@ -248,12 +263,11 @@ document.getElementById('flightForm').addEventListener('submit', async e=>{
         <b>Airline:</b> ${flightPlan.airline || 'N/A'}
     `);
 
-    // Fit bounds with padding and max zoom to prevent over-zoom
-    map.fitBounds(flightLayer.getBounds(), { padding: [50, 50], maxZoom: 7 });
+    map.fitBounds(flightLayer.getBounds(), { padding: [50,50], maxZoom: 10 });
 
+    updateBounds(); // fix bounds ngay lập tức
     alert(`Flight plan loaded: ${flightPlan.flightNumber || 'Unknown'}`);
 });
 </script>
-
 </body>
 </html>
