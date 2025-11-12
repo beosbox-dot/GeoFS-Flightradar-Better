@@ -3,76 +3,74 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AeroPulse - Dark Glass Edition</title>
+<title>AeroPulse - Premium Glass UI</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
 /* 🌌 Reset */
 * {margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif;}
 body, html {width:100%;height:100%;background:#0b0c10;color:#fff;overflow:hidden;}
 
-/* 🌑 Sidebar dark glass, sharp */
+/* 🖤 Sidebar dark glass */
 #sidebar {
     width:80px; height:100vh;
-    background: rgba(15,17,22,0.65); /* dark tint */
+    background: rgba(18,18,25,0.65);
     backdrop-filter: blur(20px);
     display:flex;flex-direction:column;align-items:center;padding:20px 0;
     position:fixed;left:0;top:0;z-index:1000;
     border-right:1px solid rgba(255,255,255,0.05);
-    transition: all 0.3s ease;
+    transition: all 0.35s ease;
 }
 
 #sidebar .logo {
-    font-size:24px;font-weight:700;color:#2ca1ff;margin-bottom:30px;text-align:center;
+    font-size:22px;font-weight:700;color:#2ca1ff;margin-bottom:28px;text-align:center;
     letter-spacing:2px;
 }
 
-/* Buttons sharp + symbol */
+/* Buttons sharp + custom symbols */
 #sidebar button {
-    width:50px;height:50px;margin:12px 0;
+    width:54px;height:54px;margin:12px 0;
     background: rgba(255,255,255,0.03);
-    border:none;border-radius:0;
-    font-size:28px;
-    color:#bbb;
+    border:none;border-radius:4px;
     cursor:pointer;
     display:flex;justify-content:center;align-items:center;
     position:relative;overflow:hidden;
-    transition: transform 0.3s ease, background 0.3s ease, color 0.3s ease;
+    transition: transform 0.3s ease, background 0.3s ease;
 }
 
-/* Hover / Active */
+/* Hover / active effect */
 #sidebar button.active, #sidebar button:hover {
-    background: rgba(44,161,255,0.18);
-    color:#2ca1ff;
-    transform: scale(1.15);
+    background: rgba(44,161,255,0.2);
+    transform: scale(1.18);
 }
 
-/* Symbols SVG */
+/* Custom symbol SVG */
 .symbol-box {
-    width:18px; height:18px;
+    width:20px; height:20px;
     stroke:#bbb; stroke-width:2; fill:none;
     transition: stroke 0.3s ease, transform 0.3s ease;
 }
+
 #sidebar button.active .symbol-box,
 #sidebar button:hover .symbol-box {
     stroke:#2ca1ff;
     transform: scale(1.2);
 }
 
-/* 💧 Glass pop-up dark tint */
+/* 💧 Glass pop-up dark tint with smooth animation */
 #formContainer {
     display:none;
     position:absolute;
     top:0; left:80px;
     width:calc(100% - 80px);
     height:100vh;
-    background: rgba(18,18,24,0.65); /* dark tint */
+    background: rgba(18,18,24,0.6);
     backdrop-filter: blur(22px);
     padding:40px;
     overflow-y:auto;
     z-index:1000;
     transform: scale(0.95);
     opacity:0;
-    transition: transform 0.35s cubic-bezier(0.25,1,0.5,1), opacity 0.35s cubic-bezier(0.25,1,0.5,1);
+    transition: transform 0.4s cubic-bezier(0.25,1,0.5,1), opacity 0.4s cubic-bezier(0.25,1,0.5,1);
 }
 
 /* Show/hide class */
@@ -81,8 +79,6 @@ body, html {width:100%;height:100%;background:#0b0c10;color:#fff;overflow:hidden
     transform: scale(1);
     opacity:1;
 }
-
-/* Hide smoothly */
 #formContainer.hide {
     transform: scale(0.95);
     opacity:0;
@@ -91,10 +87,10 @@ body, html {width:100%;height:100%;background:#0b0c10;color:#fff;overflow:hidden
 /* ✈︎ Flight Form */
 #flightForm {
     max-width:480px; margin:0 auto;
-    background: rgba(25,25,35,0.6);
-    padding:30px 40px;
-    border-radius:0;
-    box-shadow:0 12px 30px rgba(0,0,0,0.5);
+    background: rgba(25,25,35,0.65);
+    padding:32px 40px;
+    border-radius:4px;
+    box-shadow:0 14px 40px rgba(0,0,0,0.55);
     backdrop-filter: blur(22px);
     transition: all 0.3s ease;
 }
@@ -108,14 +104,14 @@ body, html {width:100%;height:100%;background:#0b0c10;color:#fff;overflow:hidden
 }
 
 #flightForm input {
-    width:100%;padding:10px 12px;border-radius:0;border:1px solid rgba(255,255,255,0.2);
+    width:100%;padding:12px 12px;border-radius:2px;border:1px solid rgba(255,255,255,0.2);
     background: rgba(20,22,28,0.45);color:#fff;margin-top:6px;font-size:14px;
     transition:0.25s ease;
 }
 #flightForm input:focus {border-color:#2ca1ff;box-shadow:0 0 12px rgba(44,161,255,0.4);outline:none;}
 
 #flightForm button {
-    width:100%;padding:12px;margin-top:20px;border:none;border-radius:0;
+    width:100%;padding:12px;margin-top:20px;border:none;border-radius:2px;
     background:#2ca1ff;color:#fff;font-size:15px;font-weight:600;cursor:pointer;
     transition:0.25s ease, transform 0.2s;
 }
@@ -126,7 +122,7 @@ body, html {width:100%;height:100%;background:#0b0c10;color:#fff;overflow:hidden
 
 /* Scrollbar glassy dark */
 #formContainer::-webkit-scrollbar {width:10px;}
-#formContainer::-webkit-scrollbar-thumb {background:rgba(100,100,100,0.4);border-radius:0;}
+#formContainer::-webkit-scrollbar-thumb {background:rgba(100,100,100,0.4);}
 #formContainer::-webkit-scrollbar-thumb:hover {background:rgba(180,180,180,0.5);}
 </style>
 </head>
@@ -136,18 +132,18 @@ body, html {width:100%;height:100%;background:#0b0c10;color:#fff;overflow:hidden
 <div id="sidebar">
     <div class="logo">Aero</div>
 
-    <!-- Home symbol: custom SVG -->
+    <!-- Home symbol -->
     <button id="homeBtn" title="Home">
         <svg class="symbol-box" viewBox="0 0 24 24">
             <polyline points="3,12 12,3 21,12" />
-            <rect x="6" y="12" width="12" height="9" />
+            <rect x="6" y="12" width="12" height="9"/>
         </svg>
     </button>
 
     <!-- New Flight: ✈︎ -->
     <button id="newFlightBtn" title="New Flight">✈︎</button>
 
-    <!-- Traffic symbol: custom SVG cross-circle -->
+    <!-- Traffic: custom cross-circle -->
     <button id="trafficBtn" title="Traffic">
         <svg class="symbol-box" viewBox="0 0 24 24">
             <circle cx="12" cy="12" r="5"/>
@@ -205,7 +201,7 @@ function showForm() {
 function hideForm() {
     formContainer.classList.remove('show');
     formContainer.classList.add('hide');
-    setTimeout(()=>{formContainer.style.display='none';}, 350); // match transition
+    setTimeout(()=>{formContainer.style.display='none';}, 400); // smooth hide
 }
 
 document.getElementById('newFlightBtn').addEventListener('click', showForm);
@@ -214,3 +210,4 @@ document.getElementById('trafficBtn').addEventListener('click', hideForm);
 </script>
 </body>
 </html>
+
