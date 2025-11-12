@@ -431,18 +431,125 @@ document.getElementById('flightForm').addEventListener('submit',e=>{
   if(flightLayer) map.removeLayer(flightLayer);
   
   // Tạo layer đường bay
-  flightLayer=L.polyline([depPos,arrPos],{color:'#2ca1ff',weight:4,opacity:0.9,dashArray:'8,6'}).addTo(map);
-  
-  // Thêm marker cho điểm đi và đến
-  L.marker(depPos).addTo(map).bindPopup(`<b>Khởi hành:</b> ${dep}`).openPopup();
-  L.marker(arrPos).addTo(map).bindPopup(`<b>Đến:</b> ${arr}`);
+  <!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  body, html { margin:0; padding:0; height:100%; font-family:Arial,sans-serif; }
+  #map { height: 80%; width: 100%; }
+  #ticket {
+    height: 20%;
+    width: 100%;
+    padding: 10px;
+    background:#111;
+    color:#fff;
+    overflow:auto;
+  }
+</style>
+</head>
+<body>
 
-  flightLayer.bindPopup(`<b>Chuyến bay:</b> ${callsign}<br><b>Máy bay:</b> ${aircraft}<br><b>Từ:</b> ${dep}<br><b>Đến:</b> ${arr}`);
-  map.fitBounds(flightLayer.getBounds(),{padding:[100,100]});
+<div id="map"></div>
+<div id="ticket"><h3>Flight Info</h3></div>
 
-  const ticket=document.getElementById('ticket');
-  ticket.innerHTML=`<h3>Flight Plan Loaded</h3><b>Chuyến bay:</b> ${callsign}<br><b>Máy bay:</b> ${aircraft}<br><b>Từ:</b> ${dep}<br><b>Đến:</b> ${arr}`;
-  ticket.style.display='block';
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// Sample flights
+const flights = [
+    {
+        callsign: 'VN001',
+        aircraft: 'Boeing 787',
+        dep: 'SGN',
+        arr: 'SFO',
+        depPos: [10.762622, 106.660172],
+        arrPos: [37.621313, -122.378955]
+    },
+    {
+        callsign: 'UA123',
+        aircraft: 'Airbus A350',
+        dep: 'LAX',
+        arr: 'NRT',
+        depPos: [33.941589, -118.40853],
+        arrPos: [35.771991, 140.39285]
+    }
+];
+
+// Initialize map
+const map = L.map('map').setView([20,0],2);
+
+// Tile layer
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    maxZoom: 18
+}).addTo(map);
+
+// Great Circle function
+function generateGreatCircle(start, end, steps = 200){
+    const coords = [];
+    const [lat1, lon1] = start.map(d => d * Math.PI/180);
+    const [lat2, lon2] = end.map(d => d * Math.PI/180);
+
+    const d = 2 * Math.asin(Math.sqrt(Math.sin((lat2-lat1)/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin((lon2-lon1)/2)**2));
+
+    for(let i=0; i<=steps; i++){
+        const f = i/steps;
+        const A = Math.sin((1-f)*d)/Math.sin(d);
+        const B = Math.sin(f*d)/Math.sin(d);
+        const x = A*Math.cos(lat1)*Math.cos(lon1) + B*Math.cos(lat2)*Math.cos(lon2);
+        const y = A*Mathcos(lat1)*Math.sin(lon1) + B*Math.cos(lat2)*Math.sin(lon2);
+        const z = A*Math.sin(lat1) + B*Math.sin(lat2);
+        const lat = Math.atan2(z, Math.sqrt(x*x+y*y));
+        const lon = Math.atan2(y,x);
+        coords.push([lat*180/Math.PI, lon*180/Math.PI]);
+    }
+    return coords;
+}
+
+// Flight info panel
+const ticket = document.getElementById('ticket');
+
+// Process all flights
+flights.forEach(flight => {
+    // Markers
+    L.marker(flight.depPos).addTo(map).bindPopup(`<b>Departure:</b> ${flight.dep}`).openPopup();
+    L.marker(flight.arrPos).addTo(map).bindPopup(`<b>Arrival:</b> ${flight.arr}`);
+
+    // Great circle
+    const routeCoords = generateGreatCircle(flight.depPos, flight.arrPos, 200);
+    const flightLine = L.polyline(routeCoords, {color:'cyan', weight:3, opacity:0.7}).addTo(map);
+
+    // Popup for flight line
+    flightLine.bindPopup(`
+        <b>Flight:</b> ${flight.callsign}<br>
+        <b>Aircraft:</b> ${flight.aircraft}<br>
+        <b>From:</b> ${flight.dep}<br>
+        <b>To:</b> ${flight.arr}
+    `);
+
+    // Fit map to all routes
+    map.fitBounds(flightLine.getBounds(), {padding:[100,100]});
+
+    // Animate flight marker
+    const flightMarker = L.marker(flight.depPos).addTo(map);
+    let idx = 0;
+    function moveMarker() {
+        if(idx < routeCoords.length){
+            flightMarker.setLatLng(routeCoords[idx]);
+            map.panTo(routeCoords[idx], {animate:true, duration:0.5});
+            idx++;
+            setTimeout(moveMarker, 50); // adjust speed
+        }
+    }
+    moveMarker();
+
+    // Update ticket info
+    ticket.innerHTML += `
+        <hr>
+        <b>Flight:</b> ${flight.callsign}<br>
+        <b>Aircraft:</b> ${flight.aircraft}<br>
+        <b>From:</b> ${flight.dep}<br>
+        <b>To:</b> ${flight.arr}<br>
+    `;
 });
 </script>
 </body>
