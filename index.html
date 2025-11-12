@@ -455,26 +455,6 @@ document.getElementById('flightForm').addEventListener('submit',e=>{
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-// Sample flights
-const flights = [
-    {
-        callsign: 'VN001',
-        aircraft: 'Boeing 787',
-        dep: 'SGN',
-        arr: 'SFO',
-        depPos: [10.762622, 106.660172],
-        arrPos: [37.621313, -122.378955]
-    },
-    {
-        callsign: 'UA123',
-        aircraft: 'Airbus A350',
-        dep: 'LAX',
-        arr: 'NRT',
-        depPos: [33.941589, -118.40853],
-        arrPos: [35.771991, 140.39285]
-    }
-];
-
 // Initialize map
 const map = L.map('map').setView([20,0],2);
 
