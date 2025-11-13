@@ -410,66 +410,102 @@ const airports = { "ATL": [33.6407, -84.4277],
   "KTM": [27.6974, 85.3567],
   "DAC": [23.8433, 90.3978] 
                  };
-let flightLayer = null;
-
-// Sidebar interactions
-const formContainer=document.getElementById('formContainer');
-document.getElementById('newFlightBtn').addEventListener('click',()=>{formContainer.classList.remove('hide');formContainer.classList.add('show');formContainer.style.display='block';});
-document.getElementById('homeBtn').addEventListener('click',()=>{formContainer.classList.remove('show');formContainer.classList.add('hide');setTimeout(()=>formContainer.style.display='none',350);});
-document.getElementById('trafficBtn').addEventListener('click',()=>{formContainer.classList.remove('show');formContainer.classList.add('hide');setTimeout(()=>formContainer.style.display='none',350);});
-
-// Flight form submit
-document.getElementById('flightForm').addEventListener('submit', e=>{
+// ✈️ Flight form submit (revised)
+document.getElementById('flightForm').addEventListener('submit', e => {
   e.preventDefault();
   const dep = document.getElementById('departure').value.toUpperCase();
   const arr = document.getElementById('arrival').value.toUpperCase();
   const callsign = document.getElementById('callsign').value.toUpperCase();
   const aircraft = document.getElementById('aircraft').options[document.getElementById('aircraft').selectedIndex].text;
 
-  if(!airports[dep] || !airports[arr]) { alert("Airport not found!"); return; }
+  if (!airports[dep] || !airports[arr]) {
+    alert("Airport not found!");
+    return;
+  }
+
   const depPos = airports[dep], arrPos = airports[arr];
 
-  if(flightLayer) map.removeLayer(flightLayer);
+  if (flightLayer) map.removeLayer(flightLayer);
 
-  // Great circle line
-  function generateGreatCircle(start, end, steps=100){
-    const coords=[];
-    const [lat1, lon1] = start.map(d=>d*Math.PI/180);
-    const [lat2, lon2] = end.map(d=>d*Math.PI/180);
-    const d = 2*Math.asin(Math.sqrt(Math.sin((lat2-lat1)/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin((lon2-lon1)/2)**2));
-    for(let i=0;i<=steps;i++){
-      const f=i/steps;
-      const A=Math.sin((1-f)*d)/Math.sin(d), B=Math.sin(f*d)/Math.sin(d);
-      const x = A*Math.cos(lat1)*Math.cos(lon1)+B*Math.cos(lat2)*Math.cos(lon2);
-      const y = A*Math.cos(lat1)*Math.sin(lon1)+B*Math.cos(lat2)*Math.sin(lon2);
-      const z = A*Math.sin(lat1)+B*Math.sin(lat2);
-      const lat = Math.atan2(z, Math.sqrt(x*x+y*y));
-      const lon = Math.atan2(y,x);
-      coords.push([lat*180/Math.PI, lon*180/Math.PI]);
+  // ✈️ Great circle function (smooth curve)
+  function generateGreatCircle(start, end, steps = 200) {
+    const coords = [];
+    const [lat1, lon1] = start.map(d => d * Math.PI / 180);
+    const [lat2, lon2] = end.map(d => d * Math.PI / 180);
+    const d = 2 * Math.asin(Math.sqrt(Math.sin((lat2 - lat1) / 2) ** 2 +
+              Math.cos(lat1) * Math.cos(lat2) * Math.sin((lon2 - lon1) / 2) ** 2));
+    for (let i = 0; i <= steps; i++) {
+      const f = i / steps;
+      const A = Math.sin((1 - f) * d) / Math.sin(d);
+      const B = Math.sin(f * d) / Math.sin(d);
+      const x = A * Math.cos(lat1) * Math.cos(lon1) + B * Math.cos(lat2) * Math.cos(lon2);
+      const y = A * Math.cos(lat1) * Math.sin(lon1) + B * Math.cos(lat2) * Math.sin(lon2);
+      const z = A * Math.sin(lat1) + B * Math.sin(lat2);
+      const lat = Math.atan2(z, Math.sqrt(x * x + y * y));
+      const lon = Math.atan2(y, x);
+      coords.push([lat * 180 / Math.PI, lon * 180 / Math.PI]);
     }
     return coords;
   }
 
-  const routeCoords = generateGreatCircle(depPos, arrPos, 100);
-  flightLayer = L.polyline(routeCoords,{color:'cyan',weight:3,opacity:0.7}).addTo(map);
+  const routeCoords = generateGreatCircle(depPos, arrPos, 200);
 
-  map.fitBounds(flightLayer.getBounds(),{padding:[50,50]});
+  // 🌐 Smooth dashed route line
+  flightLayer = L.polyline(routeCoords, {
+    color: '#00ffff',
+    weight: 2.2,
+    opacity: 0.8,
+    dashArray: '4, 8', // nhỏ và nhẹ hơn
+    smoothFactor: 2
+  }).addTo(map);
 
-  // Flight marker animation
-  const flightMarker = L.marker(depPos).addTo(map);
-  let idx=0;
-  function moveMarker(){
-    if(idx<routeCoords.length){
+  // 🔵 Departure and Arrival icons
+  const depIcon = L.divIcon({
+    html: '<i class="fa-solid fa-plane-departure" style="color:#33ccff;font-size:20px;"></i>',
+    className: 'airport-icon',
+    iconSize: [24, 24],
+    popupAnchor: [0, -10]
+  });
+
+  const arrIcon = L.divIcon({
+    html: '<i class="fa-solid fa-plane-arrival" style="color:#ff6666;font-size:20px;"></i>',
+    className: 'airport-icon',
+    iconSize: [24, 24],
+    popupAnchor: [0, -10]
+  });
+
+  const depMarker = L.marker(depPos, { icon: depIcon }).addTo(map).bindPopup(`<b>${dep}</b>`);
+  const arrMarker = L.marker(arrPos, { icon: arrIcon }).addTo(map).bindPopup(`<b>${arr}</b>`);
+
+  map.fitBounds(flightLayer.getBounds(), { padding: [60, 60] });
+
+  // 🛫 Flight marker with motion
+  const planeIcon = L.divIcon({
+    html: '<i class="fa-solid fa-plane" style="color:cyan;transform:rotate(45deg);font-size:18px;"></i>',
+    className: '',
+    iconSize: [18, 18]
+  });
+
+  const flightMarker = L.marker(depPos, { icon: planeIcon }).addTo(map);
+  let idx = 0;
+
+  function moveMarker() {
+    if (idx < routeCoords.length) {
       flightMarker.setLatLng(routeCoords[idx]);
-      idx++; setTimeout(moveMarker,50);
+      idx++;
+      requestAnimationFrame(moveMarker); // mượt hơn setTimeout
     }
   }
   moveMarker();
 
-  // Show ticket
+  // 🧾 Show ticket info
   const ticket = document.getElementById('ticket');
-  ticket.style.display='block';
-  ticket.innerHTML = `<b>Flight:</b> ${callsign}<br><b>Aircraft:</b> ${aircraft}<br><b>From:</b> ${dep}<br><b>To:</b> ${arr}`;
+  ticket.style.display = 'block';
+  ticket.innerHTML = `
+    <b>Flight:</b> ${callsign}<br>
+    <b>Aircraft:</b> ${aircraft}<br>
+    <b>From:</b> ${dep}<br>
+    <b>To:</b> ${arr}`;
 });
 </script>
 
